@@ -25,6 +25,8 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.set('view engine', 'ejs');
+
 // 設定 Google OAuth
 passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
@@ -39,7 +41,7 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 app.get("/",(req,res)=>{
-    res.send(`<a href="/auth/google">Login with Google</a>`);
+    res.render("index");
 });
 
 // Google 登入
@@ -49,7 +51,19 @@ app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "em
 app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/" }), (req, res) => {
     res.redirect("/profile");
 });
+// **中間件：檢查登入狀態**
+function isAuthenticated(req, res, next) {
+    req.login_state = req.isAuthenticated(); // 根據 passport 的驗證狀態設定 login_state
+    if (!req.login_state) {
+        req.login_state = false;
+        
+    }
+    next(); // 允許請求繼續執行
+}
+app.get("/protect", isAuthenticated, (req, res) => {
+    res.render("protect", { user: req.user ,login_state: req.login_state}); // 傳遞 user 變數到 EJS
 
+});
 // 個人檔案頁面
 app.get("/profile", (req, res) => {
     if (!req.user) {
@@ -57,7 +71,10 @@ app.get("/profile", (req, res) => {
     }
     res.send(`Welcome ${req.user.displayName}`);
 });
-
+// 登出
+app.get("/login", (req, res) => {
+    res.render("login");
+});
 // 登出
 app.get("/logout", (req, res, next) => {
     req.logout(function(err) {

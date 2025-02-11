@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protect page</title>
+</head>
+<body>
+    <% if (login_state) { %>
+        <h1>hi, <%= user.displayName %>!</h1>
+        Do you want to <a href="/logout">logout</a>?
+    <% } else { %>
+        <h1>Pls login first</h1>
+        <a href="/auth/google">Login with Google</a>
+    <% } %>
+</body>
+</html>
